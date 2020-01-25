@@ -88,7 +88,7 @@ function all(req, res) {
       .then(data => findPossibleMatches(data, filename))
       .then(data => {
         const responseData = Object.keys(data).map(item => {
-          const url = req.protocol + '://' + req.get('host') + req.originalUrl;
+          const url = req.protocol + '://' + req.get('host');
           return `${url}/static/images/${item}`;
         });
 
