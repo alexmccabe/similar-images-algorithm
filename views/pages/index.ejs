@@ -7,6 +7,16 @@
     <title>Document</title>
 </head>
 <body>
-    <img src="/static/images/1.jpg" alt="">
+    <%- include ('../partials/form') %>
 </body>
+
+<script>
+    window.commonData = {
+        apiUrl: '<%= apiUrl %>'
+
+    }
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.2/axios.min.js"></script>
+<script src="/static/scripts/app.js"></script>
 </html>
