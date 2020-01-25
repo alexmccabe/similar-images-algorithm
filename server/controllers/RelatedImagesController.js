@@ -1,3 +1,5 @@
+const Busboy = require('busboy');
+
 const data = require('../data.json');
 const { cleanObject, mapObject, omit } = require('../../utils/object');
 
@@ -27,7 +29,7 @@ function isItemPossibleMatch(itemData, imageData) {
   return false;
 }
 
-function findPossibleMatches(imageData) {
+function findPossibleMatches(imageData, imageFilename) {
   // Remove the uploaded image data from the provided image data "pool"
   const removedImageData = omit(data, imageFilename);
 
@@ -58,9 +60,11 @@ function findPossibleMatches(imageData) {
  * @param {Object} image Uploaded multipart/form-data image
  * @returns {Object} Google Cloud Vision API response data
  */
-function getImageData(image) {
-  // @TODO: Get filename from image
-  return (imageData = data[imageFilename]);
+function getImageData(image, imageFilename) {
+  // Pseudo-code
+  // return CloudVisionService.sendImage(image)
+
+  return Promise.resolve(data[imageFilename]);
 }
 
 // function flatten(data) {
@@ -74,18 +78,22 @@ function getImageData(image) {
 // console.log(flattened);
 
 function all(req, res) {
-  // Grab the filename
-  const imageData = getImageData();
+  const busboy = new Busboy({ headers: req.headers });
 
-  // Find any related items
-  const relatedItems = findPossibleMatches(imageData);
+  busboy.on('file', (fieldname, file, filename) => {
+    getImageData(file, filename)
+      .then(data => findPossibleMatches(data, filename))
+      .then(data => {
+        const responseData = Object.keys(data).map(item => {
+          const url = req.protocol + '://' + req.get('host') + req.originalUrl;
+          return `${url}/static/images/${item}`;
+        });
 
-  const responseData = Object.keys(relatedItems).map(item => {
-    const url = req.protocol + '://' + req.get('host') + req.originalUrl;
-    return `${url}/static/images/${item}`;
+        res.send(responseData);
+      });
   });
 
-  res.send(responseData);
+  return req.pipe(busboy);
 }
 
 module.exports = { all };
