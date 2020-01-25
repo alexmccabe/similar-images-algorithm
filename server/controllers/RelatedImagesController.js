@@ -30,6 +30,9 @@ function isItemPossibleMatch(itemData, imageData) {
 }
 
 function findPossibleMatches(imageData, imageFilename) {
+  if (!imageData) {
+    return {};
+  }
   // Remove the uploaded image data from the provided image data "pool"
   const removedImageData = omit(data, imageFilename);
 
