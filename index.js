@@ -1,8 +1,9 @@
-const { mapObject, omit } = require('./utils');
+const { cleanObject, mapObject, omit } = require('./utils');
 
 function isItemPossibleMatch(itemData, imageData) {
   const possibleMatches = imageData.reduce((acc, item) => {
-    if (itemData.mid === item.mid && itemData.score > 0.985) {
+    const scoreThreshold = 0.99;
+    if (itemData.mid === item.mid && itemData.score > scoreThreshold) {
       acc.push(item);
     }
 
@@ -23,14 +24,14 @@ function flatten(data) {
 }
 
 const data = require('./data.json');
-const imageFilename = '1.jpg';
+const imageFilename = '13.jpg';
 const imageData = data[imageFilename];
 const removedImageData = omit(data, imageFilename);
 // const flattened = flatten(data);
 
 // console.log(flattened);
 
-const filteredData = mapObject(removedImageData, (dataItem, key) => {
+const filteredData = mapObject(removedImageData, dataItem => {
   const possibleMatches = dataItem.reduce((acc, item) => {
     if (isItemPossibleMatch(item, imageData)) {
       acc.push(item);
@@ -39,10 +40,12 @@ const filteredData = mapObject(removedImageData, (dataItem, key) => {
     return acc;
   }, []);
 
-  return possibleMatches;
+  if (possibleMatches.length) {
+    return possibleMatches;
+  }
 });
 
-console.log(filteredData);
+console.log(Object.keys(cleanObject(filteredData)).length);
 
 /**
 potentially loop over each item and try and match score for score
