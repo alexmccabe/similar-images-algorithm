@@ -1,0 +1,24 @@
+{
+  "name": "similar-images-algorithm",
+  "version": "0.0.1",
+  "description": "Small Node application to find potential related images",
+  "main": "index.js",
+  "repository": "https://github.com/alexmccabe/similar-images-algorithm.git",
+  "author": "Alex McCabe <alexwmccabe@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "NODE_ENV=production node index.js",
+    "dev": "NODE_ENV=local nodemon ./index.js",
+    "ui": "browser-sync start --proxy=localhost:5000 --files='public/**/*'"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.2"
+  },
+  "dependencies": {
+    "browser-sync": "^2.26.7",
+    "dotenv": "^8.2.0",
+    "ejs": "^3.0.1",
+    "express": "^4.17.1"
+  }
+}

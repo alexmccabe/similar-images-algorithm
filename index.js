@@ -1,4 +1,27 @@
-const { cleanObject, mapObject, omit } = require('./utils');
+require('dotenv').config();
+
+const express = require('express');
+const path = require('path');
+const routes = require('./server/routes');
+
+const port = process.env.PORT || process.env.port || '8000';
+const app = express();
+
+const paths = {
+  static: path.join(__dirname, 'public'),
+  views: path.join(__dirname, 'views')
+};
+
+app.set('views', paths.views);
+app.set('view engine', 'ejs');
+app.use('/static', express.static(paths.static));
+app.use(routes);
+
+app.listen(port, () => {
+  console.log(`App available at http://localhost:${port}`);
+});
+
+const { cleanObject, mapObject, omit } = require('./utils/object');
 
 function isItemPossibleMatch(itemData, imageData) {
   const possibleMatches = imageData.reduce((acc, item) => {
@@ -45,7 +68,7 @@ const filteredData = mapObject(removedImageData, dataItem => {
   }
 });
 
-console.log(Object.keys(cleanObject(filteredData)).length);
+// console.log(Object.keys(cleanObject(filteredData)).length);
 
 /**
 potentially loop over each item and try and match score for score
