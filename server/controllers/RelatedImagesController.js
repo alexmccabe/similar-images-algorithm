@@ -1,4 +1,6 @@
 const Busboy = require('busboy');
+const fs = require('fs');
+const path = require('path');
 
 const data = require('../data.json');
 const { cleanObject, mapObject, omit } = require('../../utils/object');
@@ -70,21 +72,30 @@ function getImageData(image, imageFilename) {
   return Promise.resolve(data[imageFilename]);
 }
 
-// function flatten(data) {
-//   return Object.keys(data).map(key => {
-//     return { filename: key, data: data[key] };
-//   });
-// }
+function all(req, res, next) {
+  const busboy = new Busboy({
+    headers: req.headers,
+    limits: { files: 1, fileSize: 50000 }
+  });
 
-// const flattened = flatten(data);
+  /**
+   * There are some things missing from this handler:
+   * 1. File type validation. We should only allow images
+   * 2. Set file extension after up
+   * 3. Delete file after uploading
+   * 4. Handle if user aborts request mid-upload (should delete file)
+   */
+  busboy.on('file', async (fieldname, file, filename) => {
+    const tmpDir = req.app.get('paths').tmp;
+    let filePath = `${tmpDir}/${Date.now()}`;
 
-// console.log(flattened);
+    if (!fs.existsSync(tmpDir)) {
+      fs.mkdirSync(tmpDir);
+    }
 
-function all(req, res) {
-  const busboy = new Busboy({ headers: req.headers });
+    file.pipe(fs.createWriteStream(filePath));
 
-  busboy.on('file', (fieldname, file, filename) => {
-    getImageData(file, filename)
+    await getImageData(file, filename)
       .then(data => findPossibleMatches(data, filename))
       .then(data => {
         const responseData = Object.keys(data).map(item => {
@@ -92,7 +103,7 @@ function all(req, res) {
           return `${url}/static/images/${item}`;
         });
 
-        res.send(responseData);
+        res.send({ data: responseData });
       });
   });
 

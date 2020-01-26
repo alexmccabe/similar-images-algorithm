@@ -44,6 +44,6 @@ $form.addEventListener('submit', event => {
 
   axios
     .post(`${baseUrl}/getRelatedImages`, data)
-    .then(res => appendToDOM(res.data))
+    .then(res => appendToDOM(res.data.data))
     .catch(err => console.error(err));
 });

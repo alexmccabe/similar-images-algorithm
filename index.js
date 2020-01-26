@@ -9,9 +9,11 @@ const app = express();
 
 const paths = {
   static: path.join(__dirname, 'public'),
+  tmp: path.join(__dirname, 'tmp'),
   views: path.join(__dirname, 'views')
 };
 
+app.set('paths', paths);
 app.set('views', paths.views);
 app.set('view engine', 'ejs');
 app.use('/static', express.static(paths.static));
