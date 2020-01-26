@@ -1,3 +1,32 @@
+/* Related Items Component
+========================================================================== */
+function RelatedItems(props) {
+  const { items } = props;
+
+  return (
+    <div className="flex flex-col mt-8 justify-center max-w-md ml-auto mr-auto">
+      <div className="text-lg text-gray-600 font-bold text-center">
+        Other images you may like
+      </div>
+
+      <div className="mt-2 -mx-2 -mb-2 flex flex-wrap justify-center">
+        {items.map((item, index) => (
+          <div className="p-2 w-1/3" key={index}>
+            <div
+              className="max-w-sm rounded relative overflow-hidden shadow-lg w-full"
+              style={{
+                paddingBottom: '100%'
+              }}
+            >
+              <img src={item} className="absolute h-full w-full object-cover" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* Uploaded Image Preview Component
 ========================================================================== */
 function Preview(props) {
@@ -116,6 +145,10 @@ function Form(props) {
         ></Notification>
       )}
 
+      <div className="text-lg text-gray-600 font-bold text-center">
+        Upload an image
+      </div>
+
       <label className="w-64 flex flex-col items-center mt-6 px-4 py-6 bg-white text-blue-600 rounded-lg tracking-wide uppercase border border-blue-600 cursor-pointer hover:bg-blue-500 hover:text-white">
         <svg
           className="w-8 h-8"
@@ -158,7 +191,13 @@ function App() {
     <div>
       {!previewImage && <Form onSuccess={onSuccess}></Form>}
       {previewImage && (
-        <Preview image={previewImage} onReset={onReset}></Preview>
+        <div className="flex justify-center">
+          <Preview image={previewImage} onReset={onReset}></Preview>
+        </div>
+      )}
+
+      {Boolean(relatedItems.length) && previewImage && (
+        <RelatedItems items={relatedItems}></RelatedItems>
       )}
     </div>
   );
