@@ -1,49 +1,167 @@
-const $form = document.querySelector('#js-image-upload-form');
-const $fileInput = document.querySelector('#form-image-input');
-const $uploadPreview = document.querySelector('#js-upload-preview');
-const $relatedImages = document.querySelector('#js-related-images');
-const baseUrl = `${window.commonData.apiUrl}/api`;
+/* Uploaded Image Preview Component
+========================================================================== */
+function Preview(props) {
+  const { image, onReset } = props;
+  const reader = new FileReader();
+  let [preview, setPreview] = React.useState(null);
 
-function getFormData(formElement) {
-  if (formElement) {
-    return new FormData(formElement);
-  }
+  reader.onload = event => {
+    setPreview(event.target.result);
+  };
 
-  return null;
+  reader.readAsDataURL(image);
+
+  return (
+    <div className="max-w-sm rounded overflow-hidden shadow-lg">
+      <img className="w-full" src={preview} />
+      <div className="px-6 py-4">
+        <div className="font-bold text-xl mb-2">Success!</div>
+        <p className="text-gray-700 text-base">
+          Your image was uploaded, and it's a good one!
+        </p>
+      </div>
+      <div className="px-6 py-4 flex ">
+        <button
+          className="ml-auto bg-blue-500 hover:bg-blue-700 text-s text-white font-bold py-2 px-3 rounded"
+          onClick={onReset}
+        >
+          Upload Another!
+        </button>
+      </div>
+    </div>
+  );
 }
 
-function appendToDOM(data) {
-  if (data.length) {
-    data.forEach(item => {
-      const img = new Image();
+/* Notification Component
+========================================================================== */
+function Notification(props) {
+  const { message, title, type } = props;
+  let classNames = 'border px-4 py-3 rounded relative';
 
-      img.src = item;
+  switch (type) {
+    case 'success':
+      classNames += ' bg-green-100 border-green-400 text-green-700';
+      break;
 
-      $relatedImages.appendChild(img);
-    });
+    case 'error':
+      classNames += ' bg-red-100 border-red-400 text-red-700';
+      break;
   }
+
+  return (
+    <div className={classNames} role="alert">
+      {title && <strong className="font-bold">{title}</strong>}
+      <span className="block sm:inline sm:ml-2">{message}</span>
+    </div>
+  );
 }
 
-$fileInput.addEventListener('change', event => {
-  if ($fileInput.files && $fileInput.files[0]) {
-    const reader = new FileReader();
+/* Form Component
+========================================================================== */
+function Form(props) {
+  const { onSuccess } = props;
+  const baseUrl = `${window.commonData.apiUrl}/api`;
+  const formRef = React.useRef();
+  const inputRef = React.useRef();
+  const [error, setError] = React.useState(null);
 
-    reader.onload = event => {
-      $uploadPreview.setAttribute('src', event.target.result);
-      $uploadPreview.style.display = null;
-    };
+  const isValidFileType = file => {
+    const supportedFileTypes = ['jpg'];
 
-    reader.readAsDataURL($fileInput.files[0]);
-  }
-});
+    return supportedFileTypes.includes(
+      file.name
+        .split('.')
+        .pop()
+        .toLowerCase()
+    );
+  };
 
-$form.addEventListener('submit', event => {
-  event.preventDefault();
+  const submitForm = image => {
+    const formData = new FormData(formRef.current);
 
-  const data = getFormData($form);
+    axios
+      .post(`${baseUrl}/getRelatedImages`, formData)
+      .then(res => {
+        if (onSuccess && typeof onSuccess === 'function') {
+          onSuccess({ data: res.data.data, image });
+        }
+      })
+      .catch(err => setError('Error uploading image.'));
+  };
 
-  axios
-    .post(`${baseUrl}/getRelatedImages`, data)
-    .then(res => appendToDOM(res.data.data))
-    .catch(err => console.error(err));
-});
+  const onChange = () => {
+    const files = inputRef.current.files;
+    setError(null);
+
+    if (files && files[0]) {
+      if (isValidFileType(files[0])) {
+        submitForm(files[0]);
+      } else {
+        setError('File type is not supported, please only use .jpg images.');
+      }
+    }
+  };
+
+  return (
+    <form
+      encType="multipart/form-data"
+      className="flex flex-col items-center"
+      ref={formRef}
+    >
+      {error && (
+        <Notification
+          type="error"
+          title="Uh oh!"
+          message={error}
+        ></Notification>
+      )}
+
+      <label className="w-64 flex flex-col items-center mt-6 px-4 py-6 bg-white text-blue-600 rounded-lg tracking-wide uppercase border border-blue-600 cursor-pointer hover:bg-blue-500 hover:text-white">
+        <svg
+          className="w-8 h-8"
+          fill="currentColor"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+        >
+          <path d="M16.88 9.1A4 4 0 0 1 16 17H5a5 5 0 0 1-1-9.9V7a3 3 0 0 1 4.52-2.59A4.98 4.98 0 0 1 17 8c0 .38-.04.74-.12 1.1zM11 11h3l-4-4-4 4h3v3h2v-3z" />
+        </svg>
+        <span className="mt-2 text-base leading-normal">Select an image</span>
+
+        <input
+          type="file"
+          className="hidden"
+          name="image"
+          ref={inputRef}
+          onChange={onChange}
+        />
+      </label>
+    </form>
+  );
+}
+
+/* App Component
+========================================================================== */
+function App() {
+  const [previewImage, setPreviewImage] = React.useState(null);
+  const [relatedItems, setRelatedItems] = React.useState([]);
+
+  const onSuccess = ({ data, image }) => {
+    setPreviewImage(image);
+    setRelatedItems(data);
+  };
+
+  const onReset = () => {
+    setPreviewImage(null);
+  };
+
+  return (
+    <div>
+      {!previewImage && <Form onSuccess={onSuccess}></Form>}
+      {previewImage && (
+        <Preview image={previewImage} onReset={onReset}></Preview>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById('root'));
