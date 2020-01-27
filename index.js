@@ -22,13 +22,3 @@ app.use(routes);
 app.listen(port, () => {
   console.log(`App available at http://localhost:${port}`);
 });
-
-/**
-potentially loop over each item and try and match score for score
-
-1.jpg: [{flower: 0.9}, {badger: 0.5}, {mousemate: 0.1}]
-2.jpg: [{flower: 0.89}, {mousemat: 0.15}, {traschan: 0.05}]
-
-In this instance mousemate and flower are in both and within a _range_ so that
-we can reasonably assume they're related
-*/
